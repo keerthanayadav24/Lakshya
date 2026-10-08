@@ -11,6 +11,19 @@ Students often struggle to translate a heavy course syllabus and impending acade
 2. **Deterministic Python Scheduling:** Algorithmic calculation of study blocks respecting daily limits, rest windows, and hard deadlines.
 3. **Human-in-the-Loop Oversight:** Explicit student approval required before modifying Google Calendar, with complete audit logging and reversible actions.
 
+## Deterministic Scheduler (Phase 3)
+
+The core Lakshya scheduling engine is **100% pure deterministic Python**.
+
+- **Gemini does NOT schedule:** LLMs are strictly excluded from date/time calculations, calendar availability analysis, and block placement decisions.
+- **Python Performs Scheduling:** Greedy deterministic search algorithm translates tasks into fixed-duration study blocks (`policy.study_block_minutes`).
+- **Calendar Events as Busy Time:** All existing Google Calendar events (and previously created Lakshya events) are treated as non-negotiable busy intervals.
+- **Daily Study Limits:** Enforces `policy.max_daily_minutes` (default 240 mins/day) specifically for generated study blocks.
+- **Mandatory Rest Windows:** Enforces configured rest periods (default 22:00 to 07:00). Blocks crossing rest boundaries are strictly rejected.
+- **Deadlines Enforced:** Every generated block must complete on or before its task deadline. If tasks cannot fit, `SchedulingImpossible` is raised.
+- **Input Immutability & Determinism:** Identical inputs yield identical plans. Input task/event list order does not affect output.
+- **Property-Based Verification:** Verified using Hypothesis property tests across 10 critical scheduling invariants.
+
 ## Phase 2 Integrations
 
 - **Google OAuth:** Used strictly for Google Calendar authorization (`https://www.googleapis.com/auth/calendar`). Cryptographic state token validation prevents state tampering.
@@ -18,8 +31,6 @@ Students often struggle to translate a heavy course syllabus and impending acade
 - **Gemini Flash Client:** Isolated LLM wrapper for task breakdown and messaging. Operates statelessly with strict API key configuration safety. Does not have access to calendar tools or mutation methods.
 - **Environment Configuration:** Real credentials must be supplied via environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`).
 - **Offline Mocked Tests:** All unit tests mock external services and run completely offline.
-
-> **Note:** Syllabus task breakdown prompts, automatic scheduling algorithms, agent loop, and approval workflows will be implemented in Phase 3+.
 
 ## Technology Stack
 
