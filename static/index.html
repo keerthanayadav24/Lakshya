@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lakshya - Autonomous Study Planning Agent for Students">
+    <title>Lakshya - Autonomous Study Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-container">
+            <div class="brand">
+                <span class="brand-icon" aria-hidden="true">🎯</span>
+                <h1 class="brand-title">Lakshya</h1>
+            </div>
+            <p class="tagline">Autonomous Study-Planning Agent for Students</p>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <section class="hero-section">
+            <div class="hero-card">
+                <h2>Master Your Syllabus Effortlessly</h2>
+                <p>
+                    Lakshya intelligently breaks down complex academic syllabi into structured, actionable study tasks,
+                    determines optimal study blocks around your existing schedule, and ensures you never miss a deadline.
+                </p>
+            </div>
+        </section>
+
+        <section class="goal-form-section">
+            <form id="goal-form" class="goal-form">
+                <div class="form-header">
+                    <h3>Create Study Goal</h3>
+                    <span class="badge">Phase 1 Placeholder</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="goal-title">Goal Title</label>
+                    <input 
+                        type="text" 
+                        id="goal-title" 
+                        name="title" 
+                        placeholder="e.g. Midterm Computer Science Prep" 
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="syllabus-text">Syllabus / Study Content</label>
+                    <textarea 
+                        id="syllabus-text" 
+                        name="syllabus_text" 
+                        rows="6" 
+                        placeholder="Paste your course syllabus, topic list, or exam scope here..." 
+                        maxlength="50000"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="deadline">Target Deadline</label>
+                    <input 
+                        type="datetime-local" 
+                        id="deadline" 
+                        name="deadline" 
+                        required
+                    />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <span>Save Goal Placeholder</span>
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="status-section">
+            <h3>Agent Status & Audit</h3>
+            <div id="status-area" class="status-box" aria-live="polite">
+                <p class="status-message">Ready. Submit a goal above to initialize Phase 1 tracking.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-container">
+            <p>&copy; 2026 Lakshya Agent. Built for AI Personal Assistant & Autonomous Agents Track.</p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

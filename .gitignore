@@ -1,0 +1,28 @@
+# Secrets & Environment
+.env
+token.json
+credentials.json
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing & Linting Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# Database
+lakshya.db
+
+# OS Files
+.DS_Store
+Thumbs.db
