@@ -11,24 +11,23 @@ Students often struggle to translate a heavy course syllabus and impending acade
 2. **Deterministic Python Scheduling:** Algorithmic calculation of study blocks respecting daily limits, rest windows, and hard deadlines.
 3. **Human-in-the-Loop Oversight:** Explicit student approval required before modifying Google Calendar, with complete audit logging and reversible actions.
 
-> **Note:** Integration with Google OAuth, Google Calendar API, and Gemini API is planned for upcoming phases and is **NOT** implemented in Phase 1.
+## Phase 2 Integrations
+
+- **Google OAuth:** Used strictly for Google Calendar authorization (`https://www.googleapis.com/auth/calendar`). Cryptographic state token validation prevents state tampering.
+- **Google Calendar Client:** Isolated wrapper around Google Calendar API. All mutations (create, update, delete) are strictly guarded by private extended properties (`lakshya = "true"`). Non-Lakshya user events cannot be modified or deleted.
+- **Gemini Flash Client:** Isolated LLM wrapper for task breakdown and messaging. Operates statelessly with strict API key configuration safety. Does not have access to calendar tools or mutation methods.
+- **Environment Configuration:** Real credentials must be supplied via environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`).
+- **Offline Mocked Tests:** All unit tests mock external services and run completely offline.
+
+> **Note:** Syllabus task breakdown prompts, automatic scheduling algorithms, agent loop, and approval workflows will be implemented in Phase 3+.
 
 ## Technology Stack
 
 - **Backend:** Python 3.10+, FastAPI, Pydantic v2, SQLite
-- **LLM:** Gemini API / Gemini Flash (Planned for Phase 2+)
-- **Google Services:** Google OAuth, Google Calendar API (Planned for Phase 2+)
+- **LLM:** Gemini API / Gemini Flash (`google-genai` SDK)
+- **Google Services:** Google OAuth (`google-auth-oauthlib`), Google Calendar API (`google-api-python-client`)
 - **Frontend:** Semantic HTML5, Vanilla CSS, Vanilla JavaScript (served directly by FastAPI)
 - **Quality & Testing:** pytest, Hypothesis, Ruff, mypy, GitHub Actions CI
-
-## Phase 1 Scope
-
-This baseline repository skeleton establishes:
-- Pydantic v2 domain models (`StudyGoal`, `StudyTask`, `StudyBlock`, `CalendarEvent`, `Plan`, `AuditEntry`)
-- SQLite database foundation
-- Environment configuration system
-- FastAPI server with `/health` and static frontend placeholder
-- Testing suite (`pytest`, `mypy`, `ruff`) and CI workflow
 
 ## Local Setup & Development
 
@@ -36,7 +35,13 @@ This baseline repository skeleton establishes:
 - Python 3.10+
 - Git
 
-### 2. Run Quality Checks
+### 2. Environment Setup
+Copy `.env.example` to `.env` and fill in your credentials when running with live services:
+```bash
+cp .env.example .env
+```
+
+### 3. Run Quality Checks
 ```bash
 # Check formatting and linting
 ruff check .
@@ -48,7 +53,7 @@ mypy .
 pytest
 ```
 
-### 3. Run Application Locally
+### 4. Run Application Locally
 ```bash
 python -m uvicorn main:app --reload
 ```
