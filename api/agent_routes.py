@@ -3,6 +3,8 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 from agent.service import (
     approve_proposal,
@@ -14,16 +16,35 @@ from db import list_proposals
 from models import ApprovalRequest, ReplanProposal
 from planner.exceptions import SchedulingImpossible
 from tools.calendar import CalendarClient, CalendarError, UnauthorizedCalendarMutation
+from tools.google_auth import load_credentials
 
 router = APIRouter(prefix="/api/proposals", tags=["proposals"])
 
 
 def get_calendar_client() -> CalendarClient:
     """FastAPI dependency for obtaining CalendarClient instance."""
-    raise HTTPException(
-        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail="Google Calendar client not initialized",
-    )
+    creds_dict = load_credentials()
+    if not creds_dict:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google Calendar credentials not found. Please authenticate.",
+        )
+    try:
+        credentials = Credentials(
+            token=creds_dict.get("token"),
+            refresh_token=creds_dict.get("refresh_token"),
+            token_uri=creds_dict.get("token_uri"),
+            client_id=creds_dict.get("client_id"),
+            client_secret=creds_dict.get("client_secret"),
+            scopes=creds_dict.get("scopes"),
+        )
+        service = build("calendar", "v3", credentials=credentials)
+        return CalendarClient(service=service)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to initialize Calendar client: {e}",
+        )
 
 
 @router.post(

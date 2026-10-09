@@ -24,8 +24,10 @@ def generate_oauth_state() -> str:
 
 def get_google_authorization_url(
     state: str,
-    redirect_uri: str = "http://localhost:8000/oauth/callback",
+    redirect_uri: str | None = None,
 ) -> str:
+    if redirect_uri is None:
+        redirect_uri = settings.google_redirect_uri
     """Generate Google OAuth authorization URL for user consent."""
     client_config = {
         "web": {
@@ -51,8 +53,10 @@ def exchange_code_for_credentials(
     code: str,
     expected_state: str,
     received_state: str,
-    redirect_uri: str = "http://localhost:8000/oauth/callback",
+    redirect_uri: str | None = None,
 ) -> dict[str, Any]:
+    if redirect_uri is None:
+        redirect_uri = settings.google_redirect_uri
     """Exchange authorization code for credentials after validating state token."""
     if not received_state or received_state != expected_state:
         raise ValueError("OAuth state validation failed: state mismatch")
