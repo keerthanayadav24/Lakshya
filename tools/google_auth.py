@@ -12,6 +12,10 @@ from config import settings
 # Narrowest scope required for Lakshya study planner
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
+if os.environ.get("ENVIRONMENT", "development") != "production":
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+    os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+
 
 def generate_oauth_state() -> str:
     """Generate a cryptographically random OAuth state token."""
@@ -37,7 +41,9 @@ def get_google_authorization_url(
         state=state,
     )
     flow.redirect_uri = redirect_uri
-    auth_url, _ = flow.authorization_url(prompt="consent")
+    auth_url, _ = flow.authorization_url(
+        prompt="consent", access_type="offline"
+    )
     return str(auth_url)
 
 

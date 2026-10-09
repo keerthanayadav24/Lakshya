@@ -28,11 +28,14 @@ def test_valid_study_task() -> None:
         id="task-1",
         goal_id="goal-1",
         title="Read Chapter 3",
+        description="Focus on section 3.2",
         estimated_minutes=45,
         deadline=now,
         completed=False,
     )
     assert task.id == "task-1"
+    assert task.title == "Read Chapter 3"
+    assert task.description == "Focus on section 3.2"
     assert task.estimated_minutes == 45
 
 

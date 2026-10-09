@@ -53,6 +53,7 @@ class StudyTask(BaseModel):
     id: str
     goal_id: str
     title: str
+    description: str | None = None
     estimated_minutes: int
     deadline: datetime
     completed: bool = False

@@ -7,8 +7,13 @@ from llm.schemas import LLMTask, LLMTaskBreakdown
 
 
 def test_valid_llm_task() -> None:
-    task = LLMTask(title="Study Chapter 1", estimated_minutes=60)
+    task = LLMTask(
+        title="Study Chapter 1",
+        description="Covering sections 1.1 to 1.4",
+        estimated_minutes=60,
+    )
     assert task.title == "Study Chapter 1"
+    assert task.description == "Covering sections 1.1 to 1.4"
     assert task.estimated_minutes == 60
 
 
@@ -20,9 +25,15 @@ def test_empty_title_rejection() -> None:
 
 
 def test_oversized_title_rejection() -> None:
-    long_title = "A" * 201
+    long_title = "A" * 121
     with pytest.raises(ValidationError):
         LLMTask(title=long_title, estimated_minutes=30)
+
+
+def test_oversized_description_rejection() -> None:
+    long_desc = "D" * 501
+    with pytest.raises(ValidationError):
+        LLMTask(title="Valid Title", description=long_desc, estimated_minutes=30)
 
 
 def test_estimated_minutes_boundaries() -> None:

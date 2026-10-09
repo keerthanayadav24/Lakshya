@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lakshya - Autonomous Study Planning Agent for Students">
-    <title>Lakshya - Autonomous Study Planner</title>
+    <title>Lakshya — Autonomous Study Planner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,86 +14,196 @@
     <header class="site-header">
         <div class="container header-container">
             <div class="brand">
-                <span class="brand-icon" aria-hidden="true">🎯</span>
-                <h1 class="brand-title">Lakshya</h1>
+                <div class="brand-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">Lakshya</h1>
+                    <span class="tagline">Plan with purpose. Study with clarity.</span>
+                </div>
             </div>
-            <p class="tagline">Autonomous Study-Planning Agent for Students</p>
+            
+            <div class="header-right">
+                <div id="calendar-status" class="status-badge status-checking" aria-live="polite">
+                    <span class="status-dot"></span>
+                    <span id="calendar-status-text">Checking Calendar...</span>
+                </div>
+            </div>
         </div>
     </header>
 
+    <nav class="nav-bar container" aria-label="Main Navigation">
+        <a href="#welcome" class="nav-link">Overview</a>
+        <a href="#syllabus-section" class="nav-link">Plan Creator</a>
+        <a href="#tasks-section" class="nav-link">Tasks</a>
+        <a href="#schedule-section" class="nav-link">Schedule</a>
+        <a href="#proposals-section" class="nav-link">Proposals</a>
+        <a href="#activity-section" class="nav-link">Activity Log</a>
+    </nav>
+
     <main class="container main-content">
-        <section class="hero-section">
-            <div class="hero-card">
-                <h2>Master Your Syllabus Effortlessly</h2>
+        <!-- Welcome Hero Section -->
+        <section id="welcome" class="card hero-card" aria-labelledby="hero-title">
+            <div class="hero-content">
+                <h2 id="hero-title">Make your next study session count.</h2>
                 <p>
-                    Lakshya intelligently breaks down complex academic syllabi into structured, actionable study tasks,
-                    determines optimal study blocks around your existing schedule, and ensures you never miss a deadline.
+                    Lakshya converts your academic syllabus into a realistic, deadline-enforced study schedule. 
+                    If life happens and sessions are missed, Lakshya proposes deterministic replacement plans 
+                    which you can review and approve before any changes touch your Google Calendar.
                 </p>
+                <div class="hero-actions">
+                    <a href="#syllabus-section" class="btn btn-primary">Create Study Plan</a>
+                </div>
             </div>
         </section>
 
-        <section class="goal-form-section">
-            <form id="goal-form" class="goal-form">
-                <div class="form-header">
-                    <h3>Create Study Goal</h3>
-                    <span class="badge">Phase 1 Placeholder</span>
-                </div>
-
+        <!-- Syllabus Input Card -->
+        <section id="syllabus-section" class="card" aria-labelledby="syllabus-title">
+            <div class="card-header">
+                <h2 id="syllabus-title">1. Course Syllabus & Goal</h2>
+                <span class="badge">Syllabus Breakdown</span>
+            </div>
+            
+            <form id="syllabus-form" class="form-layout" novalidate>
                 <div class="form-group">
-                    <label for="goal-title">Goal Title</label>
+                    <label for="goal-title">Goal Title <span class="required">*</span></label>
                     <input 
                         type="text" 
                         id="goal-title" 
                         name="title" 
-                        placeholder="e.g. Midterm Computer Science Prep" 
-                        required
+                        placeholder="e.g. Computer Science Midterm Prep" 
+                        required 
+                        maxlength="200"
                     />
                 </div>
 
                 <div class="form-group">
-                    <label for="syllabus-text">Syllabus / Study Content</label>
+                    <label for="goal-deadline">Target Deadline <span class="required">*</span></label>
+                    <input 
+                        type="datetime-local" 
+                        id="goal-deadline" 
+                        name="deadline" 
+                        required 
+                    />
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="syllabus-text">Syllabus / Course Topics <span class="required">*</span></label>
+                        <span id="char-counter" class="char-count">0 / 50,000 characters</span>
+                    </div>
                     <textarea 
                         id="syllabus-text" 
                         name="syllabus_text" 
-                        rows="6" 
-                        placeholder="Paste your course syllabus, topic list, or exam scope here..." 
-                        maxlength="50000"
+                        rows="7" 
+                        placeholder="Paste course modules, chapter topics, or syllabus text here..." 
+                        maxlength="50000" 
                         required
                     ></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="deadline">Target Deadline</label>
-                    <input 
-                        type="datetime-local" 
-                        id="deadline" 
-                        name="deadline" 
-                        required
-                    />
-                </div>
+                <div id="form-feedback" class="feedback-box" aria-live="polite" hidden></div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        <span>Save Goal Placeholder</span>
+                    <button type="submit" id="generate-btn" class="btn btn-primary">
+                        <span id="btn-spinner" class="spinner" hidden aria-hidden="true"></span>
+                        <span id="btn-text">Generate Study Plan</span>
                     </button>
-                    <button type="reset" class="btn btn-secondary">
-                        <span>Clear</span>
-                    </button>
+                    <button type="reset" id="reset-btn" class="btn btn-secondary">Clear Input</button>
                 </div>
             </form>
         </section>
 
-        <section class="status-section">
-            <h3>Agent Status & Audit</h3>
-            <div id="status-area" class="status-box" aria-live="polite">
-                <p class="status-message">Ready. Submit a goal above to initialize Phase 1 tracking.</p>
+        <!-- Tasks Section -->
+        <section id="tasks-section" class="card" aria-labelledby="tasks-title">
+            <div class="card-header">
+                <h2 id="tasks-title">2. Study Tasks</h2>
+                <span id="task-count-badge" class="badge">0 Tasks</span>
+            </div>
+            <p class="section-desc">Extracted actionable study topics derived from your syllabus.</p>
+            
+            <div id="tasks-container" class="grid-list" aria-live="polite">
+                <div class="empty-state">
+                    <p>No study tasks generated yet. Submit your syllabus above to generate tasks.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section id="schedule-section" class="card" aria-labelledby="schedule-title">
+            <div class="card-header">
+                <h2 id="schedule-title">3. Deterministic Study Schedule</h2>
+                <span id="schedule-count-badge" class="badge">0 Blocks</span>
+            </div>
+            <p class="section-desc">Chronological 50-minute study sessions allocated within available non-rest hours.</p>
+            
+            <div id="schedule-container" class="timeline-list" aria-live="polite">
+                <div class="empty-state">
+                    <p>No scheduled blocks yet. Generate a study plan to view your timeline.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agent Proposals Section (Core Emphasis) -->
+        <section id="proposals-section" class="card card-accent" aria-labelledby="proposals-title">
+            <div class="card-header">
+                <div>
+                    <h2 id="proposals-title">4. Agent Replan Proposals</h2>
+                    <p class="subtitle-text">Autonomous missed block detection & human-in-the-loop review</p>
+                </div>
+                <button id="detect-replan-btn" class="btn btn-outline">
+                    <span>Check Missed & Propose Replan</span>
+                </button>
+            </div>
+
+            <div class="banner-notice">
+                <span class="notice-icon" aria-hidden="true">🛡️</span>
+                <span><strong>Core Safety Rule:</strong> Calendar changes are made only after you explicitly approve a proposal. Creating a proposal makes zero calendar mutations.</span>
+            </div>
+
+            <div id="proposals-feedback" class="feedback-box" aria-live="polite" hidden></div>
+
+            <div id="proposals-container" class="proposals-list" aria-live="polite">
+                <div class="empty-state">
+                    <p>No pending proposals. Click "Check Missed & Propose Replan" to inspect calendar state.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Activity Audit Log Section -->
+        <section id="activity-section" class="card" aria-labelledby="activity-title">
+            <div class="card-header">
+                <h2 id="activity-title">5. Audit History Log</h2>
+                <button id="refresh-audit-btn" class="btn btn-secondary btn-sm">Refresh Log</button>
+            </div>
+            <p class="section-desc">Immutable audit record of all state changes, proposal creations, approvals, and undos.</p>
+            
+            <div id="audits-container" class="table-wrapper" aria-live="polite">
+                <div class="empty-state">
+                    <p>No audit entries recorded yet.</p>
+                </div>
             </div>
         </section>
     </main>
 
+    <!-- Accessible Confirmation Dialog -->
+    <div id="confirm-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <h3 id="modal-title">Confirm Calendar Mutation</h3>
+            <p id="modal-body">
+                Are you sure you want to approve this proposal? 
+                This will apply the proposed study block changes directly to Google Calendar.
+            </p>
+            <div class="modal-actions">
+                <button id="confirm-approve-btn" class="btn btn-primary">Yes, Approve Calendar Change</button>
+                <button id="cancel-approve-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container footer-container">
-            <p>&copy; 2026 Lakshya Agent. Built for AI Personal Assistant & Autonomous Agents Track.</p>
+            <p>Lakshya — Autonomous Study Planning Agent. Built with Python & Vanilla JS.</p>
         </div>
     </footer>
 

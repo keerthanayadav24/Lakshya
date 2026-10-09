@@ -40,12 +40,18 @@ def init_db(db_path: str | None = None) -> None:
                 id TEXT PRIMARY KEY,
                 goal_id TEXT NOT NULL,
                 title TEXT NOT NULL,
+                description TEXT,
                 estimated_minutes INTEGER NOT NULL,
                 deadline TEXT NOT NULL,
                 completed INTEGER NOT NULL
             );
             """
         )
+        # Ensure legacy DB tables add description column if missing
+        cursor.execute("PRAGMA table_info(tasks);")
+        columns = [col[1] for col in cursor.fetchall()]
+        if "description" not in columns:
+            cursor.execute("ALTER TABLE tasks ADD COLUMN description TEXT;")
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS audit_entries (
@@ -130,12 +136,13 @@ def save_task(task: StudyTask, db_path: str | None = None) -> None:
         cursor.execute(
             """
             INSERT INTO tasks (
-                id, goal_id, title, estimated_minutes, deadline, completed
+                id, goal_id, title, description, estimated_minutes, deadline, completed
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 goal_id = excluded.goal_id,
                 title = excluded.title,
+                description = excluded.description,
                 estimated_minutes = excluded.estimated_minutes,
                 deadline = excluded.deadline,
                 completed = excluded.completed;
@@ -144,6 +151,7 @@ def save_task(task: StudyTask, db_path: str | None = None) -> None:
                 task.id,
                 task.goal_id,
                 task.title,
+                task.description,
                 task.estimated_minutes,
                 task.deadline.isoformat(),
                 1 if task.completed else 0,
@@ -157,25 +165,53 @@ def get_tasks(goal_id: str, db_path: str | None = None) -> list[StudyTask]:
     path = _get_db_path(db_path)
     with sqlite3.connect(path) as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT id, goal_id, title, estimated_minutes, deadline, completed
-            FROM tasks WHERE goal_id = ?
-            """,
-            (goal_id,),
-        )
-        rows = cursor.fetchall()
-        return [
-            StudyTask(
-                id=row[0],
-                goal_id=row[1],
-                title=row[2],
-                estimated_minutes=row[3],
-                deadline=datetime.fromisoformat(row[4]),
-                completed=bool(row[5]),
+        cursor.execute("PRAGMA table_info(tasks);")
+        columns = [col[1] for col in cursor.fetchall()]
+        has_description = "description" in columns
+
+        if has_description:
+            cursor.execute(
+                """
+                SELECT id, goal_id, title, estimated_minutes, deadline,
+                       completed, description
+                FROM tasks WHERE goal_id = ?
+                """,
+                (goal_id,),
             )
-            for row in rows
-        ]
+            rows = cursor.fetchall()
+            return [
+                StudyTask(
+                    id=row[0],
+                    goal_id=row[1],
+                    title=row[2],
+                    estimated_minutes=row[3],
+                    deadline=datetime.fromisoformat(row[4]),
+                    completed=bool(row[5]),
+                    description=row[6],
+                )
+                for row in rows
+            ]
+        else:
+            cursor.execute(
+                """
+                SELECT id, goal_id, title, estimated_minutes, deadline, completed
+                FROM tasks WHERE goal_id = ?
+                """,
+                (goal_id,),
+            )
+            rows = cursor.fetchall()
+            return [
+                StudyTask(
+                    id=row[0],
+                    goal_id=row[1],
+                    title=row[2],
+                    estimated_minutes=row[3],
+                    deadline=datetime.fromisoformat(row[4]),
+                    completed=bool(row[5]),
+                    description=None,
+                )
+                for row in rows
+            ]
 
 
 def save_audit(entry: AuditEntry, db_path: str | None = None) -> None:
