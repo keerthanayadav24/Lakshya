@@ -332,7 +332,3 @@ def test_create_goal_exceeding_task_limit_rejection(
     resp = client.post("/api/goals", json=payload)
     assert resp.status_code == 400
     assert "exceeding the maximum limit of 50 tasks" in resp.json()["detail"]
-
-
-
-

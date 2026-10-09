@@ -184,9 +184,7 @@ def test_api_proposal_endpoints(
     app.dependency_overrides.clear()
 
 
-def test_malformed_proposal_json_handling(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_malformed_proposal_json_handling(tmp_db_path: str, base_now: datetime) -> None:
     import sqlite3
 
     with sqlite3.connect(tmp_db_path) as conn:
@@ -205,9 +203,7 @@ def test_malformed_proposal_json_handling(
         get_proposal("p-corrupt", db_path=tmp_db_path)
 
 
-def test_concurrent_approval_protection(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_concurrent_approval_protection(tmp_db_path: str, base_now: datetime) -> None:
     from db import atomic_update_proposal_status
 
     prop = ReplanProposal(

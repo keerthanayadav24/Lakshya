@@ -160,9 +160,7 @@ def approve_proposal(
             reversible=False,
         )
         save_audit(audit_fail, db_path=db_path)
-        raise CalendarError(
-            f"Proposal application failed partway: {e}"
-        ) from e
+        raise CalendarError(f"Proposal application failed partway: {e}") from e
 
     # Update status to applied
     try:

@@ -101,9 +101,7 @@ def test_propose_replan_zero_side_effects(base_now: datetime) -> None:
     assert proposal.new_blocks[0].start >= base_now
 
 
-def test_create_replan_proposal_service(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_create_replan_proposal_service(tmp_db_path: str, base_now: datetime) -> None:
     # Set up DB data
     goal = StudyGoal(
         id="g1",
@@ -152,9 +150,7 @@ def test_create_replan_proposal_service(
     mock_service.events().delete.assert_not_called()
 
 
-def test_approval_and_rejection_lifecycle(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_approval_and_rejection_lifecycle(tmp_db_path: str, base_now: datetime) -> None:
     # Create proposal in DB directly
     old_b = StudyBlock(
         id="b-old",
@@ -369,9 +365,7 @@ def test_user_event_substituted_for_new_block(
     mock_service.events().insert().execute.assert_not_called()
 
 
-def test_calendar_creation_fails_partway(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_calendar_creation_fails_partway(tmp_db_path: str, base_now: datetime) -> None:
     b1 = StudyBlock(
         id="nb-1",
         task_id="t1",
@@ -434,9 +428,7 @@ def test_calendar_creation_fails_partway(
     assert loaded.status == "partially_applied"
 
 
-def test_undo_after_partial_application(
-    tmp_db_path: str, base_now: datetime
-) -> None:
+def test_undo_after_partial_application(tmp_db_path: str, base_now: datetime) -> None:
     old_b = StudyBlock(
         id="ob-1",
         task_id="t1",
@@ -482,4 +474,3 @@ def test_undo_after_partial_application(
 
     undone = undo_proposal("p-partial-undo", client, db_path=tmp_db_path)
     assert undone.status == "undone"
-

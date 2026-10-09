@@ -37,14 +37,10 @@ def parse_task_breakdown(raw_json: str) -> LLMTaskBreakdown:
         raise OutputValidationError(f"Invalid JSON string from LLM: {e}") from e
 
     if not isinstance(data, dict):
-        raise OutputValidationError(
-            "LLM output JSON must be a top-level JSON object"
-        )
+        raise OutputValidationError("LLM output JSON must be a top-level JSON object")
 
     # Strict Pydantic schema validation
     try:
         return LLMTaskBreakdown.model_validate(data)
     except ValidationError as e:
-        raise OutputValidationError(
-            f"LLM output schema validation failed: {e}"
-        ) from e
+        raise OutputValidationError(f"LLM output schema validation failed: {e}") from e

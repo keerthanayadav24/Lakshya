@@ -3,7 +3,7 @@
 import json
 import sqlite3
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 from config import settings
 from models import AuditEntry, ReplanProposal, StudyBlock, StudyGoal, StudyTask
@@ -72,6 +72,14 @@ def init_db(db_path: str | None = None) -> None:
                 new_blocks TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 status TEXT NOT NULL
+            );
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS credentials (
+                id TEXT PRIMARY KEY,
+                token_data TEXT NOT NULL
             );
             """
         )
@@ -299,9 +307,7 @@ def save_proposal(proposal: ReplanProposal, db_path: str | None = None) -> None:
         conn.commit()
 
 
-def get_proposal(
-    proposal_id: str, db_path: str | None = None
-) -> ReplanProposal | None:
+def get_proposal(proposal_id: str, db_path: str | None = None) -> ReplanProposal | None:
     """Retrieve a ReplanProposal by ID, with validation against corrupt data."""
     path = _get_db_path(db_path)
     with sqlite3.connect(path) as conn:
@@ -409,3 +415,41 @@ def atomic_update_proposal_status(
         cursor.execute(query, params)
         conn.commit()
         return cursor.rowcount > 0
+
+
+def save_credentials(credentials: Dict[str, Any], db_path: str | None = None) -> None:
+    """Save Google OAuth credentials securely in SQLite."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO credentials (id, token_data)
+            VALUES ('google_oauth', ?)
+            ON CONFLICT(id) DO UPDATE SET
+                token_data = excluded.token_data;
+            """,
+            (json.dumps(credentials),),
+        )
+        conn.commit()
+
+
+def load_credentials(db_path: str | None = None) -> Dict[str, Any] | None:
+    """Load Google OAuth credentials securely from SQLite."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT token_data FROM credentials WHERE id = 'google_oauth'")
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return json.loads(row[0])
+
+
+def clear_credentials(db_path: str | None = None) -> None:
+    """Clear Google OAuth credentials from SQLite."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM credentials WHERE id = 'google_oauth'")
+        conn.commit()

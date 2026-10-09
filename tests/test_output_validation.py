@@ -41,8 +41,7 @@ def test_invalid_schema_rejection() -> None:
 
 def test_extra_fields_rejection() -> None:
     extra_fields = (
-        '{"tasks": [{"title": "Task", "estimated_minutes": 30}], '
-        '"extra": "unwanted"}'
+        '{"tasks": [{"title": "Task", "estimated_minutes": 30}], "extra": "unwanted"}'
     )
     with pytest.raises(OutputValidationError, match="schema validation failed"):
         parse_task_breakdown(extra_fields)

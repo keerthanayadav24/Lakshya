@@ -47,9 +47,7 @@ def get_calendar_client() -> CalendarClient:
         )
 
 
-@router.post(
-    "", response_model=ReplanProposal, status_code=status.HTTP_201_CREATED
-)
+@router.post("", response_model=ReplanProposal, status_code=status.HTTP_201_CREATED)
 async def create_proposal(
     goal_id: str = Query(..., description="Target study goal ID"),
     calendar_client: CalendarClient = Depends(get_calendar_client),
@@ -70,9 +68,7 @@ async def create_proposal(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
         )
     except CalendarError as e:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -105,9 +101,7 @@ async def approve_proposal_endpoint(
     except UnauthorizedCalendarMutation as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except CalendarError as e:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -144,9 +138,7 @@ async def undo_proposal_endpoint(
     except UnauthorizedCalendarMutation as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except CalendarError as e:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

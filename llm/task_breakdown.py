@@ -35,7 +35,6 @@ RE_PREFIX = re.compile(
 )
 
 
-
 SECTION_PREFIXES = (
     "course:",
     "course name:",
@@ -348,7 +347,7 @@ def derive_fallback_title_and_description(topic: str) -> tuple[str, str | None]:
         sentence_match = re.match(r"^([^.!?]+[.!?])", clean_full_text)
         if sentence_match and len(sentence_match.group(1)) <= 100:
             title = sentence_match.group(1).strip()
-            rem = clean_full_text[len(sentence_match.group(0)):].strip()
+            rem = clean_full_text[len(sentence_match.group(0)) :].strip()
             description_text = rem if rem else None
         else:
             if len(clean_full_text) > 80:

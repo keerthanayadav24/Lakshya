@@ -50,8 +50,7 @@ class GeminiClient:
         try:
             client = self._get_client()
             prompt = (
-                f"System Instruction: {system_instruction}\n"
-                f"User Input: {user_input}"
+                f"System Instruction: {system_instruction}\nUser Input: {user_input}"
             )
             response = client.models.generate_content(
                 model=self.model_name,

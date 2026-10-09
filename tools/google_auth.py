@@ -1,12 +1,12 @@
 """Google OAuth 2.0 flow and local credential management for Lakshya."""
 
-import json
 import os
 import secrets
 from typing import Any
 
 from google_auth_oauthlib.flow import Flow
 
+import db
 from config import settings
 
 # Narrowest scope required for Lakshya study planner
@@ -43,9 +43,7 @@ def get_google_authorization_url(
         state=state,
     )
     flow.redirect_uri = redirect_uri
-    auth_url, _ = flow.authorization_url(
-        prompt="consent", access_type="offline"
-    )
+    auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
     return str(auth_url)
 
 
@@ -90,27 +88,16 @@ def exchange_code_for_credentials(
 
 def save_credentials(
     credentials: dict[str, Any],
-    path: str = "token.json",
 ) -> None:
-    """Save OAuth credentials to a local JSON file."""
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(credentials, f, indent=2)
+    """Save OAuth credentials securely in the database."""
+    db.save_credentials(credentials)
 
 
-def load_credentials(
-    path: str = "token.json",
-) -> dict[str, Any] | None:
-    """Load OAuth credentials from local JSON file if present."""
-    if not os.path.exists(path):
-        return None
-    with open(path, "r", encoding="utf-8") as f:
-        data: dict[str, Any] = json.load(f)
-        return data
+def load_credentials() -> dict[str, Any] | None:
+    """Load OAuth credentials from the database if present."""
+    return db.load_credentials()
 
 
-def clear_credentials(
-    path: str = "token.json",
-) -> None:
-    """Remove local saved OAuth credentials file."""
-    if os.path.exists(path):
-        os.remove(path)
+def clear_credentials() -> None:
+    """Remove saved OAuth credentials from the database."""
+    db.clear_credentials()

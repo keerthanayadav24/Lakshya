@@ -74,22 +74,31 @@ def test_oauth_state_validation_rejection() -> None:
         )
 
 
-def test_credentials_save_load_clear(tmp_path: Path) -> None:
-    """Test credentials saving, loading, and clearing via temporary file."""
-    token_file = str(tmp_path / "token.json")
-    assert load_credentials(token_file) is None
+@patch("db._get_db_path")
+def test_credentials_save_load_clear(
+    mock_get_db_path: MagicMock, tmp_path: Path
+) -> None:
+    """Test credentials saving, loading, and clearing via SQLite."""
+    db_file = str(tmp_path / "lakshya.db")
+    mock_get_db_path.return_value = db_file
+
+    import db
+
+    db.init_db()
+
+    assert load_credentials() is None
 
     creds_data = {
         "token": "token_abc",
         "refresh_token": "refresh_xyz",
         "client_id": "client_123",
     }
-    save_credentials(creds_data, path=token_file)
-    loaded = load_credentials(token_file)
+    save_credentials(creds_data)
+    loaded = load_credentials()
     assert loaded == creds_data
 
-    clear_credentials(token_file)
-    assert load_credentials(token_file) is None
+    clear_credentials()
+    assert load_credentials() is None
 
 
 def test_credentials_not_in_gitignore() -> None:

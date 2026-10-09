@@ -42,7 +42,9 @@ def test_oauth_callback_missing_code_or_state() -> None:
 def test_oauth_callback_missing_cookie() -> None:
     """Test callback rejects request missing the oauth_state cookie."""
     local_client = TestClient(app)
-    response = local_client.get("/oauth/callback?code=abc&state=def", follow_redirects=False)  # noqa: E501
+    response = local_client.get(
+        "/oauth/callback?code=abc&state=def", follow_redirects=False
+    )  # noqa: E501
     assert response.status_code == 400
     assert "cookie missing or expired" in response.json()["detail"]
 
@@ -78,13 +80,11 @@ def test_oauth_callback_exchange_failure(mock_exchange: MagicMock) -> None:
 
 @patch("api.auth_routes.save_credentials")
 @patch("api.auth_routes.exchange_code_for_credentials")
-def test_oauth_callback_success(
-    mock_exchange: MagicMock, mock_save: MagicMock
-) -> None:
+def test_oauth_callback_success(mock_exchange: MagicMock, mock_save: MagicMock) -> None:
     """Test successful token exchange and credential persistence."""
     mock_exchange.return_value = {
-        "token": "fake_token", 
-        "refresh_token": "fake_refresh"
+        "token": "fake_token",
+        "refresh_token": "fake_refresh",
     }
 
     response = client.get(
@@ -93,8 +93,8 @@ def test_oauth_callback_success(
         follow_redirects=False,
     )
 
-    assert response.status_code == 200
-    assert "Authentication Successful" in response.text
+    assert response.status_code == 307
+    assert response.headers["location"] == "/"
 
     mock_exchange.assert_called_once_with(
         code="abc",

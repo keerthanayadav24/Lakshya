@@ -67,9 +67,7 @@ class CalendarStatusResponse(BaseModel):
     details: str
 
 
-@router.post(
-    "/goals", response_model=GoalResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/goals", response_model=GoalResponse, status_code=status.HTTP_201_CREATED)
 async def create_study_goal(req: CreateGoalRequest) -> GoalResponse:
     """Create a new study goal, generate task breakdown, and schedule study blocks."""
     now = datetime.now(timezone.utc)

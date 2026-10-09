@@ -47,9 +47,7 @@ def _slot_overlaps_rest(
     return False
 
 
-def _intervals_overlap(
-    s1: datetime, e1: datetime, s2: datetime, e2: datetime
-) -> bool:
+def _intervals_overlap(s1: datetime, e1: datetime, s2: datetime, e2: datetime) -> bool:
     """Return True if open interval (s1, e1) overlaps with (s2, e2)."""
     return s1 < e2 and s2 < e1
 
@@ -129,9 +127,7 @@ def validate_plan(
 
         # Invariant 1: No past scheduling
         if block.start < now:
-            raise ValueError(
-                f"Block {block.id} starts in the past relative to now"
-            )
+            raise ValueError(f"Block {block.id} starts in the past relative to now")
 
         # Invariant 2: Valid task reference
         if block.task_id not in task_map:
@@ -182,9 +178,7 @@ def validate_plan(
         for j in range(i + 1, len(sorted_blocks)):
             other = sorted_blocks[j]
             if _intervals_overlap(block.start, block.end, other.start, other.end):
-                raise ValueError(
-                    f"Block {block.id} overlaps with block {other.id}"
-                )
+                raise ValueError(f"Block {block.id} overlaps with block {other.id}")
 
         # Invariant 9: Daily study cap
         b_date = block.start.date()

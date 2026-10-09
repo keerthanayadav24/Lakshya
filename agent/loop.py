@@ -53,9 +53,7 @@ def propose_replan(
     default_task_id = tasks[0].id if tasks else "task_unknown"
 
     for evt in missed_events:
-        matching_tasks = [
-            t for t in tasks if t.title in evt.title or t.id in evt.id
-        ]
+        matching_tasks = [t for t in tasks if t.title in evt.title or t.id in evt.id]
         task_id = matching_tasks[0].id if matching_tasks else default_task_id
 
         old_blocks.append(

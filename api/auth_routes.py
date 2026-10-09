@@ -19,7 +19,7 @@ async def oauth_start() -> RedirectResponse:
     try:
         state = generate_oauth_state()
         auth_url = get_google_authorization_url(state=state)
-        
+
         redirect = RedirectResponse(url=auth_url)
         redirect.set_cookie(
             key="oauth_state",
@@ -66,28 +66,20 @@ async def oauth_callback(
             received_state=received_state,
         )
         save_credentials(credentials)
-        
-        content = (
-            "<html>\n"
-            "    <head><title>Authentication Successful</title></head>\n"
-            "    <body style=\"font-family: sans-serif; text-align: center; "
-            "margin-top: 50px;\">\n"
-            "        <h1>Authentication Successful</h1>\n"
-            "        <p>Google Calendar has been linked successfully.</p>\n"
-            "        <p>You may now close this window and "
-            "return to the dashboard.</p>\n"
-            "    </body>\n"
-            "</html>"
-        )
-        return HTMLResponse(content=content, status_code=200)
+
+        redirect = RedirectResponse(url="/")
+        redirect.delete_cookie("oauth_state")
+        return redirect
     except ValueError as e:
         import logging
+
         logging.getLogger(__name__).error(
             f"OAuth state mismatch: {type(e).__name__} - {e}"
         )
         raise HTTPException(status_code=400, detail="OAuth state validation failed.")
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(
             f"OAuth exchange failed: {type(e).__name__} - {e}"
         )

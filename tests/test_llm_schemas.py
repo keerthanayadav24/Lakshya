@@ -67,9 +67,7 @@ def test_empty_tasks_list_rejection() -> None:
 
 
 def test_tasks_list_over_50_rejection() -> None:
-    many_tasks = [
-        LLMTask(title=f"T{i}", estimated_minutes=30) for i in range(51)
-    ]
+    many_tasks = [LLMTask(title=f"T{i}", estimated_minutes=30) for i in range(51)]
     with pytest.raises(ValidationError):
         LLMTaskBreakdown(tasks=many_tasks)
 

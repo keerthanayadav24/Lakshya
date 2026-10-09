@@ -110,9 +110,7 @@ def test_scheduler_properties_1_to_5(data: Any) -> None:
     for b in blocks:
         assert not (b.start.hour >= 22 or b.start.hour < 7)
         is_rest = (
-            b.end.hour > 22
-            or b.end.hour < 7
-            or (b.end.hour == 22 and b.end.minute > 0)
+            b.end.hour > 22 or b.end.hour < 7 or (b.end.hour == 22 and b.end.minute > 0)
         )
         assert not is_rest
 
