@@ -117,6 +117,8 @@ class CalendarEvent(BaseModel):
     end: datetime
     title: str
     is_lakshya: bool = False
+    task_id: str | None = None
+    is_completed: bool = False
 
     @field_validator("id", "title")
     @classmethod
@@ -170,3 +172,42 @@ class AuditEntry(BaseModel):
     def check_tz_aware(cls, v: datetime, info: ValidationInfo) -> datetime:
         field_name = info.field_name or "Field"
         return _validate_tz_aware(v, field_name)
+
+
+class ReplanProposal(BaseModel):
+    """Domain model representing a proposed study replan awaiting approval."""
+
+    id: str
+    reason: str
+    old_blocks: list[StudyBlock]
+    new_blocks: list[StudyBlock]
+    created_at: datetime
+    status: Literal[
+        "pending",
+        "approved",
+        "applying",
+        "applied",
+        "partially_applied",
+        "rejected",
+        "undoing",
+        "undone",
+        "partially_undone",
+    ] = "pending"
+
+    @field_validator("id", "reason")
+    @classmethod
+    def check_non_empty(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name or "Field"
+        return _validate_non_empty(v, field_name)
+
+    @field_validator("created_at")
+    @classmethod
+    def check_tz_aware(cls, v: datetime, info: ValidationInfo) -> datetime:
+        field_name = info.field_name or "Field"
+        return _validate_tz_aware(v, field_name)
+
+
+class ApprovalRequest(BaseModel):
+    """Request model for proposal approval/rejection API endpoints."""
+
+    approved: bool

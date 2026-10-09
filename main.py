@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from api.agent_routes import router as agent_router
 from db import init_db
 
 
@@ -19,6 +20,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="Lakshya API", lifespan=lifespan)
+
+# Include agent proposal API routes
+app.include_router(agent_router)
 
 # Mount static folder for serving CSS, JS, and static assets
 app.mount("/static", StaticFiles(directory="static"), name="static")

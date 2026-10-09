@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from config import settings
-from models import AuditEntry, StudyGoal, StudyTask
+from models import AuditEntry, ReplanProposal, StudyBlock, StudyGoal, StudyTask
 
 
 def _get_db_path(db_path: str | None = None) -> str:
@@ -54,6 +54,18 @@ def init_db(db_path: str | None = None) -> None:
                 timestamp TEXT NOT NULL,
                 details TEXT NOT NULL,
                 reversible INTEGER NOT NULL
+            );
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS proposals (
+                id TEXT PRIMARY KEY,
+                reason TEXT NOT NULL,
+                old_blocks TEXT NOT NULL,
+                new_blocks TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                status TEXT NOT NULL
             );
             """
         )
@@ -217,3 +229,147 @@ def get_audit_entries(db_path: str | None = None) -> list[AuditEntry]:
                 )
             )
         return entries
+
+
+def save_proposal(proposal: ReplanProposal, db_path: str | None = None) -> None:
+    """Save or update a ReplanProposal in SQLite."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        old_json = json.dumps([b.model_dump(mode="json") for b in proposal.old_blocks])
+        new_json = json.dumps([b.model_dump(mode="json") for b in proposal.new_blocks])
+        cursor.execute(
+            """
+            INSERT INTO proposals (
+                id, reason, old_blocks, new_blocks, created_at, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                reason = excluded.reason,
+                old_blocks = excluded.old_blocks,
+                new_blocks = excluded.new_blocks,
+                created_at = excluded.created_at,
+                status = excluded.status;
+            """,
+            (
+                proposal.id,
+                proposal.reason,
+                old_json,
+                new_json,
+                proposal.created_at.isoformat(),
+                proposal.status,
+            ),
+        )
+        conn.commit()
+
+
+def get_proposal(
+    proposal_id: str, db_path: str | None = None
+) -> ReplanProposal | None:
+    """Retrieve a ReplanProposal by ID, with validation against corrupt data."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, reason, old_blocks, new_blocks, created_at, status
+            FROM proposals WHERE id = ?
+            """,
+            (proposal_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        try:
+            old_raw = json.loads(row[2])
+            new_raw = json.loads(row[3])
+            old_blocks = [StudyBlock.model_validate(item) for item in old_raw]
+            new_blocks = [StudyBlock.model_validate(item) for item in new_raw]
+            return ReplanProposal(
+                id=row[0],
+                reason=row[1],
+                old_blocks=old_blocks,
+                new_blocks=new_blocks,
+                created_at=datetime.fromisoformat(row[4]),
+                status=row[5],
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Malformed proposal data in database for proposal {proposal_id}: {e}"
+            ) from e
+
+
+def list_proposals(db_path: str | None = None) -> list[ReplanProposal]:
+    """Retrieve all ReplanProposals sorted by created_at DESC."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, reason, old_blocks, new_blocks, created_at, status
+            FROM proposals ORDER BY created_at DESC
+            """
+        )
+        rows = cursor.fetchall()
+        results: list[ReplanProposal] = []
+        for row in rows:
+            try:
+                old_raw = json.loads(row[2])
+                new_raw = json.loads(row[3])
+                old_blocks = [StudyBlock.model_validate(item) for item in old_raw]
+                new_blocks = [StudyBlock.model_validate(item) for item in new_raw]
+                results.append(
+                    ReplanProposal(
+                        id=row[0],
+                        reason=row[1],
+                        old_blocks=old_blocks,
+                        new_blocks=new_blocks,
+                        created_at=datetime.fromisoformat(row[4]),
+                        status=row[5],
+                    )
+                )
+            except Exception:
+                # Safely ignore unparseable proposal rows
+                continue
+        return results
+
+
+def update_proposal_status(
+    proposal_id: str, status: str, db_path: str | None = None
+) -> None:
+    """Update status of a ReplanProposal."""
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE proposals SET status = ? WHERE id = ?",
+            (status, proposal_id),
+        )
+        conn.commit()
+
+
+def atomic_update_proposal_status(
+    proposal_id: str,
+    expected_statuses: str | list[str],
+    new_status: str,
+    db_path: str | None = None,
+) -> bool:
+    """Atomically update proposal status if current status matches expected_statuses."""
+    path = _get_db_path(db_path)
+    expected_list = (
+        [expected_statuses]
+        if isinstance(expected_statuses, str)
+        else list(expected_statuses)
+    )
+
+    placeholders = ", ".join(["?"] * len(expected_list))
+    query = (
+        f"UPDATE proposals SET status = ? WHERE id = ? AND status IN ({placeholders})"
+    )
+    params = [new_status, proposal_id] + expected_list
+
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.rowcount > 0

@@ -11,6 +11,28 @@ Students often struggle to translate a heavy course syllabus and impending acade
 2. **Deterministic Python Scheduling:** Algorithmic calculation of study blocks respecting daily limits, rest windows, and hard deadlines.
 3. **Human-in-the-Loop Oversight:** Explicit student approval required before modifying Google Calendar, with complete audit logging and reversible actions.
 
+## Agent Loop (Phase 5)
+
+Lakshya operates on an autonomous **Observe → Reason → Propose → Approve → Execute → Audit → Undo** architecture:
+
+- **Observe:** Detects past missed Lakshya-owned study blocks (`end < now` and `is_lakshya is True`). Normal user calendar events are never flagged.
+- **Reason:** Calculates replacement study blocks using the 100% deterministic Python scheduler engine. Gemini is **NOT** used for replanning.
+- **Propose:** Generates a persistent `ReplanProposal` with status `pending`. **ZERO** Google Calendar mutations occur during proposal creation.
+- **Approve:** Requires explicit student confirmation (`POST /api/proposals/{id}/approve` with `approved: true`).
+- **Execute:** Mutates **ONLY** Lakshya-owned Google Calendar events (`lakshya = "true"`). Non-Lakshya user events are strictly protected and never modified.
+- **Audit:** Records immutable audit log entries (`proposal_created`, `proposal_applied`, `proposal_rejected`, `proposal_undone`, `proposal_failed`) for all state transitions.
+- **Undo:** Safely reverses applied proposals (`POST /api/proposals/{id}/undo`), removing newly created Lakshya blocks and restoring original blocks.
+
+> **CRITICAL HUMAN-IN-THE-LOOP RULE:**
+> *"Calendar changes are never made merely because the agent proposed them. The student must explicitly approve the proposal."*
+
+## Gemini Task Breakdown (Phase 4)
+
+- **Syllabus Content Analysis:** Gemini Flash is used solely to parse course syllabi into structured study tasks (`LLMTaskBreakdown`).
+- **Strict Schema Validation:** LLM output is validated using Pydantic (`LLMTask` & `LLMTaskBreakdown`). Output must strictly contain non-empty titles (max 200 chars) and estimated minutes (10 to 480 mins).
+- **Strict Guard (`parse_task_breakdown`):** Markdown code fences, malformed JSON, missing fields, or extra fields are strictly rejected via `OutputValidationError`. No partial parsing or coercion fallback.
+- **Strict Architectural Separation:** Gemini ONLY determines *WHAT* needs to be studied. Gemini does **NOT** determine *WHEN* tasks are scheduled, calendar dates, times, availability, or calendar mutations.
+
 ## Deterministic Scheduler (Phase 3)
 
 The core Lakshya scheduling engine is **100% pure deterministic Python**.

@@ -24,6 +24,8 @@ def _raw_to_calendar_event(raw: dict[str, Any]) -> CalendarEvent:
     title = raw.get("summary") or raw.get("title") or "Untitled Event"
     ext_private = raw.get("extendedProperties", {}).get("private", {})
     is_lakshya = ext_private.get("lakshya") == "true"
+    task_id = ext_private.get("lakshya_task_id")
+    is_completed = ext_private.get("lakshya_completed") == "true"
 
     start_info = raw.get("start", {})
     end_info = raw.get("end", {})
@@ -60,6 +62,8 @@ def _raw_to_calendar_event(raw: dict[str, Any]) -> CalendarEvent:
             end=end_dt,
             title=title,
             is_lakshya=is_lakshya,
+            task_id=task_id,
+            is_completed=is_completed,
         )
     except Exception as e:
         if isinstance(e, CalendarError):
@@ -151,6 +155,7 @@ class CalendarClient:
                     "private": {
                         "lakshya": "true",
                         "lakshya_block_id": block.id,
+                        "lakshya_task_id": block.task_id,
                     }
                 },
             }
